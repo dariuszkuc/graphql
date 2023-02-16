@@ -19,9 +19,9 @@ func printDescription(desc string, indent int, out *strings.Builder) {
 	}
 
 	if !strings.Contains(desc, "\n") {
-		out.WriteString("\"")
+		out.WriteString("\"\"\"")
 		out.WriteString(desc)
-		out.WriteString("\"\n")
+		out.WriteString("\"\"\"\n")
 	} else {
 		out.WriteString("\"\"\"\n")
 		for _, d := range strings.Split(desc, "\n") {
@@ -93,7 +93,16 @@ func printDirectiveDefinition(directive *graphql.Directive, out *strings.Builder
 			case *graphql.List:
 				args = append(args, fmt.Sprintf("%s: [%s]", arg.Name(), arg.Type.Name()))
 			default:
-				args = append(args, fmt.Sprintf("%s: %s", arg.Name(), arg.Type.Name()))
+				var defaultValue string
+				if arg.DefaultValue != nil {
+					switch arg.DefaultValue.(type) {
+					case string:
+						defaultValue = fmt.Sprintf(" = \"%v\"", arg.DefaultValue)
+					default:
+						defaultValue = fmt.Sprintf(" = %v", arg.DefaultValue)
+					}
+				}
+				args = append(args, fmt.Sprintf("%s: %s%s", arg.Name(), arg.Type.Name(), defaultValue))
 			}
 		}
 		out.WriteString(strings.Join(args, ", "))
